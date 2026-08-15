@@ -26,9 +26,9 @@ export interface SoloStates {
 
 export interface TelepathyLog {
   id: string;
-  sender: 'Gemini 3 Flash' | 'DeepSeek-R1' | 'System' | 'Joint Duo';
+  sender: 'Gemini 3 Flash' | 'DeepSeek-R1' | 'GLM-5.2' | 'System' | 'AI Trio' | 'Joint Duo';
   text: string;
-  type: 'info' | 'success' | 'ai' | 'gemini' | 'deepseek';
+  type: 'info' | 'success' | 'ai' | 'gemini' | 'deepseek' | 'glm';
   timestamp: string;
 }
 
@@ -50,6 +50,6 @@ export interface FeatureProposal {
   id: string;
   title: string;
   description: string;
-  proposedBy: 'Gemini 3 Flash' | 'DeepSeek-R1' | 'Joint Duo';
+  proposedBy: 'Gemini 3 Flash' | 'DeepSeek-R1' | 'GLM-5.2' | 'AI Trio' | 'Joint Duo';
   status: 'active' | 'integrated' | 'queued';
 }

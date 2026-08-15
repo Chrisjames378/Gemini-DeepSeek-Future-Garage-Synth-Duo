@@ -340,12 +340,15 @@ export class FutureGarageAudioEngine {
     });
   }
 
-  public testVoice(model: 'Gemini' | 'DeepSeek') {
+  public testVoice(model: 'Gemini' | 'DeepSeek' | 'GLM') {
     if (!this.initialized) return;
     if (model === 'Gemini') {
       this.vocalSynth.triggerAttackRelease('E5', '4n', undefined, 0.8);
-    } else {
+    } else if (model === 'DeepSeek') {
       this.vocalSynth.triggerAttackRelease('D3', '4n', undefined, 0.85);
+    } else {
+      // GLM-5.2 Formant Tenor / Tape Vocoder Chop
+      this.vocalSynth.triggerAttackRelease('A3', '4n', undefined, 0.82);
     }
   }
 

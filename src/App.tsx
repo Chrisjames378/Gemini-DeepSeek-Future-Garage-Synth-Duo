@@ -9,6 +9,7 @@ import { FxControls } from './components/FxControls';
 import { CloudVault } from './components/CloudVault';
 import { AiStudioExportModal } from './components/AiStudioExportModal';
 import { RecordModal } from './components/RecordModal';
+import { GoogleDocsExportModal } from './components/GoogleDocsExportModal';
 import { TapeDubSirenBar } from './components/TapeDubSirenBar';
 import { PrivateReleasePlatform } from './components/PrivateReleasePlatform';
 import {
@@ -95,6 +96,7 @@ export default function App() {
   // Modals & UI
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState<boolean>(false);
+  const [isGoogleDocsModalOpen, setIsGoogleDocsModalOpen] = useState<boolean>(false);
   const [modalNotification, setModalNotification] = useState<{
     isOpen: boolean;
     title: string;
@@ -192,7 +194,7 @@ export default function App() {
 
   // Mutate pattern logic
   const mutatePatternAutonomous = useCallback(() => {
-    const aiModels = ['Gemini 3 Flash', 'DeepSeek-R1'] as const;
+    const aiModels = ['Gemini 3 Flash', 'DeepSeek-R1', 'GLM-5.2'] as const;
     const chosenModel = aiModels[Math.floor(Math.random() * aiModels.length)];
 
     const tracks: TrackType[] = ['drums', 'bass', 'chords', 'fx', 'vocals'];
@@ -213,14 +215,14 @@ export default function App() {
       `Injecting ghost shuffle and dynamic velocity variance on "${targetTrack}".`,
       `Modulating D-minor harmonic tension and vocal chop timing at step ${randomStep + 1}.`,
       `Smoothing sub-bass resonance filter and widening stereo reverb decay.`,
+      `Applying analog tape saturation flutter and mid-frequency formant warmth to "${targetTrack}".`,
     ];
     const thought = thoughts[Math.floor(Math.random() * thoughts.length)];
 
-    addLog(
-      chosenModel,
-      thought,
-      chosenModel === 'Gemini 3 Flash' ? 'gemini' : 'deepseek'
-    );
+    const logType: TelepathyLog['type'] =
+      chosenModel === 'Gemini 3 Flash' ? 'gemini' : chosenModel === 'DeepSeek-R1' ? 'deepseek' : 'glm';
+
+    addLog(chosenModel, thought, logType);
   }, [addLog]);
 
   // Periodic Countdown loop for mutation UI
@@ -338,25 +340,24 @@ export default function App() {
     await audioEngine.init();
     audioEngine.singVocalAnthem();
     addLog(
-      'Joint Duo',
-      'Gemini & DeepSeek synthesized a synchronized atmospheric vocal harmony sweep across the master reverb bus.',
+      'AI Trio',
+      'Gemini, DeepSeek & GLM-5.2 synthesized a synchronized 3-part atmospheric vocal harmony sweep across the master reverb bus.',
       'ai'
     );
     showNotification(
-      'AI Vocal Anthem',
-      'Gemini 3 Flash (soprano) & DeepSeek-R1 (bass chants) just performed a live harmonic vocal progression!'
+      'AI Trio Vocal Anthem',
+      'Gemini 3 Flash (soprano), DeepSeek-R1 (bass chant) & GLM-5.2 (warm vocoder) just performed a live 3-part harmonic progression!'
     );
   };
 
   // Test Vocalist Voice
-  const handleTestVoice = async (model: 'Gemini' | 'DeepSeek') => {
+  const handleTestVoice = async (model: 'Gemini' | 'DeepSeek' | 'GLM') => {
     await audioEngine.init();
     audioEngine.testVoice(model);
-    addLog(
-      model === 'Gemini' ? 'Gemini 3 Flash' : 'DeepSeek-R1',
-      `Tested vocal formant frequency (${model === 'Gemini' ? 'High Soprano E5' : 'Deep Bass D3'}).`,
-      model === 'Gemini' ? 'gemini' : 'deepseek'
-    );
+    const modelName = model === 'Gemini' ? 'Gemini 3 Flash' : model === 'DeepSeek' ? 'DeepSeek-R1' : 'GLM-5.2';
+    const pitchDesc = model === 'Gemini' ? 'High Soprano E5' : model === 'DeepSeek' ? 'Deep Bass D3' : 'Mid Vocoder A3';
+    const logType: TelepathyLog['type'] = model === 'Gemini' ? 'gemini' : model === 'DeepSeek' ? 'deepseek' : 'glm';
+    addLog(modelName, `Tested vocal formant frequency (${pitchDesc}).`, logType);
   };
 
   // Mute & Solo
@@ -414,14 +415,14 @@ export default function App() {
       reverbWet,
       filterCutoff,
       patterns,
-      creator: 'Gemini 3 Flash & DeepSeek-R1',
+      creator: 'Ghostform (Gemini 3 Flash × DeepSeek-R1 × GLM-5.2)',
       createdAt: new Date().toISOString(),
       description,
-      tags: ['Future Garage', 'Neural Jam', '2-Step'],
+      tags: ['Future Garage', 'Neural Jam', '2-Step', 'GLM-5.2'],
     };
 
     setCloudTracks((prev) => [newTrack, ...prev]);
-    addLog('Joint Duo', `Saved composition "${title}" to AI Duo Cloud Vault.`, 'success');
+    addLog('AI Trio', `Saved composition "${title}" to AI Trio Cloud Vault.`, 'success');
     showNotification('Track Saved', `"${title}" has been saved to your Cloud Track Vault!`);
   };
 
@@ -450,7 +451,7 @@ export default function App() {
     handleLoadTrack(preset);
   };
 
-  // Ask Duo For Features
+  // Ask Trio For Features
   const handleAskDuoForFeatures = () => {
     const proposalsList = [
       {
@@ -464,9 +465,14 @@ export default function App() {
         author: 'Gemini 3 Flash' as const,
       },
       {
+        title: 'Analog Tape Saturation & ZAI GLM-5.2 Mastering',
+        desc: 'Vintage tube harmonics, tape bias simulation, and dynamic master multiband glue.',
+        author: 'GLM-5.2' as const,
+      },
+      {
         title: 'Tape-Stop & Dub Siren Matrix',
         desc: 'Classic dub echo feedback loops with vintage vinyl flutter.',
-        author: 'Joint Duo' as const,
+        author: 'AI Trio' as const,
       },
       {
         title: 'AI Multi-Track MIDI File Exporter',
@@ -485,13 +491,18 @@ export default function App() {
     };
 
     setProposals((prev) => [newProp, ...prev]);
-    addLog(
-      pick.author,
-      `Proposed new feature: "${pick.title}" - ${pick.desc}`,
-      pick.author === 'Gemini 3 Flash' ? 'gemini' : 'deepseek'
-    );
+    const logType: TelepathyLog['type'] =
+      pick.author === 'Gemini 3 Flash'
+        ? 'gemini'
+        : pick.author === 'DeepSeek-R1'
+        ? 'deepseek'
+        : pick.author === 'GLM-5.2'
+        ? 'glm'
+        : 'ai';
+
+    addLog(pick.author, `Proposed new feature: "${pick.title}" - ${pick.desc}`, logType);
     showNotification(
-      'AI Duo Feature Proposal',
+      'AI Trio Feature Proposal',
       `${pick.author} brainstormed: "${pick.title}"! It has been added to your collaborative roadmap.`
     );
   };
@@ -510,9 +521,19 @@ export default function App() {
         msg: 'Agreed. Syncopating the kick on step 14 and ghost snare on step 22 locks the 2-step groove into pocket.',
       },
       {
+        speaker: 'GLM-5.2' as const,
+        type: 'glm' as const,
+        msg: 'Applying tape flutter and analog drive to the mid harmonics will prevent the vocals from masking the sub-bass.',
+      },
+      {
         speaker: 'Gemini 3 Flash' as const,
         type: 'gemini' as const,
         msg: 'Adding high soprano vocal chops on the off-beat gives that iconic Burial melancholy.',
+      },
+      {
+        speaker: 'GLM-5.2' as const,
+        type: 'glm' as const,
+        msg: 'Eve agent orchestration initialized. Multi-agent state synchronization is active across all 32 steps.',
       },
       {
         speaker: 'DeepSeek-R1' as const,
@@ -536,6 +557,7 @@ export default function App() {
         onTogglePlay={handleTogglePlay}
         onOpenExportModal={() => setIsExportModalOpen(true)}
         onOpenRecordModal={() => setIsRecordModalOpen(true)}
+        onOpenGoogleDocsModal={() => setIsGoogleDocsModalOpen(true)}
         onScrollToReleaseHub={scrollToReleaseHub}
         producerName={producerName}
         tempo={tempo}
@@ -714,6 +736,14 @@ export default function App() {
         chordProgressionId={chordProgressionId}
         drumKitId={drumKitId}
         onExportStem={handleExportStem}
+      />
+
+      {/* Google Docs Export Modal */}
+      <GoogleDocsExportModal
+        isOpen={isGoogleDocsModalOpen}
+        onClose={() => setIsGoogleDocsModalOpen(false)}
+        trackTitle={`Ghostform (${producerName}) • Future Garage Synth Studio`}
+        tempo={tempo}
       />
 
 

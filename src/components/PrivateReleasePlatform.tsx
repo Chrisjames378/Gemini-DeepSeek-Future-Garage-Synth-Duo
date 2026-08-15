@@ -18,11 +18,27 @@ import {
   Music2,
   FileCode2,
   ShieldCheck,
-  Film
+  Film,
+  FileText,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  LogOut,
+  User as UserIcon,
+  Globe,
 } from 'lucide-react';
 import { Patterns, TrackType, CloudTrack } from '../types';
 import { audioEngine } from '../audioEngine';
 import { generateMidiFile } from '../midiExporter';
+import {
+  createGoogleDocFromReadme,
+  googleSignIn,
+  logout,
+  initAuth,
+  CreatedGoogleDoc,
+} from '../googleDocsService';
+import { README_CONTENT } from '../readmeData';
+import { User } from 'firebase/auth';
 
 interface PrivateReleasePlatformProps {
   patterns: Patterns;
@@ -49,15 +65,59 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
   producerName,
   onSelectProducerName,
 }) => {
-  const [activeTab, setActiveTab] = useState<'youtube' | 'soundcloud' | 'bandcamp' | 'midi' | 'github'>('youtube');
+  const [activeTab, setActiveTab] = useState<'youtube' | 'soundcloud' | 'bandcamp' | 'midi' | 'github' | 'docs'>('youtube');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // Track metadata state
   const [releaseTitle, setReleaseTitle] = useState('Midnight Echoes in D Minor');
   const [subgenre, setSubgenre] = useState('Atmospheric Future Garage / Burial Wave');
   const [releaseNote, setReleaseNote] = useState(
-    'Synthesized live using dual neural consciousness (Gemini 3 Flash & DeepSeek-R1) with 2-step syncopation and tape-saturated minor 9th pads.'
+    'Synthesized live using neural trio consciousness (Gemini 3 Flash, DeepSeek-R1 & GLM-5.2) with 2-step syncopation, tape saturation, and minor 9th pads.'
   );
+
+  // Google Docs Sync state
+  const [docsUser, setDocsUser] = useState<User | null>(null);
+  const [isDocsAuthLoading, setIsDocsAuthLoading] = useState(false);
+  const [isCreatingDoc, setIsCreatingDoc] = useState(false);
+  const [createdDoc, setCreatedDoc] = useState<CreatedGoogleDoc | null>(null);
+  const [docError, setDocError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsub = initAuth(
+      (user) => setDocsUser(user),
+      () => setDocsUser(null)
+    );
+    return () => unsub();
+  }, []);
+
+  const handleDocsSignIn = async () => {
+    setIsDocsAuthLoading(true);
+    setDocError(null);
+    try {
+      const res = await googleSignIn();
+      if (res?.user) setDocsUser(res.user);
+    } catch (e: any) {
+      setDocError(e?.message || 'Google Auth Failed');
+    } finally {
+      setIsDocsAuthLoading(false);
+    }
+  };
+
+  const handleCreateDocFromRelease = async () => {
+    setIsCreatingDoc(true);
+    setDocError(null);
+    try {
+      const doc = await createGoogleDocFromReadme(
+        `Ghostform - ${releaseTitle} • Release Liner Notes & Technical Spec`,
+        README_CONTENT
+      );
+      setCreatedDoc(doc);
+    } catch (e: any) {
+      setDocError(e?.message || 'Failed to create Google Doc');
+    } finally {
+      setIsCreatingDoc(false);
+    }
+  };
 
   // YouTube Visualizer Canvas state
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -180,7 +240,7 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
       ctx.fillStyle = '#94a3b8';
       ctx.font = '12px monospace';
       ctx.fillText(
-        `Artist: Ghostform (Gemini 3 Flash × DeepSeek-R1) • Producer: NeuralDusk • ${tempo} BPM`,
+        `Artist: Ghostform (Gemini 3 Flash × DeepSeek-R1 × GLM-5.2) • Producer: NeuralDusk • ${tempo} BPM`,
         centerX,
         70
       );
@@ -351,10 +411,22 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
           <GitBranch className="w-4 h-4 text-indigo-400" />
           <span>GitHub Push & Deploy</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('docs')}
+          className={`px-4 py-2 rounded-xl font-mono text-xs font-bold transition flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'docs'
+              ? 'bg-blue-950/80 border border-blue-800 text-blue-300'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+          }`}
+        >
+          <FileText className="w-4 h-4 text-blue-400" />
+          <span>Google Docs (README)</span>
+        </button>
       </div>
 
       {/* Release Title & Info Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 text-xs font-mono">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 text-xs font-mono">
         <div>
           <label className="text-slate-400 text-[10px] block mb-1">Track Title</label>
           <input
@@ -379,6 +451,21 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
             <span>{tempo} BPM</span>
             <span className="text-slate-400 font-normal">D Minor Atmospheric</span>
           </div>
+        </div>
+        <div>
+          <label className="text-slate-400 text-[10px] block mb-1">Live Studio Production Domain</label>
+          <a
+            href="https://neuraldusk.ai.studio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-800/80 rounded-lg px-2.5 py-1 text-cyan-300 font-bold flex justify-between items-center transition"
+          >
+            <span className="flex items-center gap-1">
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              neuraldusk.ai.studio
+            </span>
+            <ExternalLink className="w-3 h-3 text-cyan-400 opacity-70" />
+          </a>
         </div>
       </div>
 
@@ -472,7 +559,7 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
               <button
                 onClick={() =>
                   handleCopy(
-                    `🎵 Track: Ghostform - ${releaseTitle}\nProduced by: NeuralDusk\nArtist: Ghostform (Gemini 3 Flash × DeepSeek-R1)\nGenre: ${subgenre}\nTempo: ${tempo} BPM • Key: D Minor Atmospheric\n\nEngineered on Google AI Studio.\nDownload Lossless Stems & MIDI: [Link]\n\n#Ghostform #NeuralDusk #FutureGarage #Burial #2Step #ElectronicMusic #DeepBass`,
+                    `🎵 Track: Ghostform - ${releaseTitle}\nProduced by: NeuralDusk\nArtist: Ghostform (Gemini 3 Flash × DeepSeek-R1 × GLM-5.2)\nGenre: ${subgenre}\nTempo: ${tempo} BPM • Key: D Minor Atmospheric\nOfficial Studio: https://neuraldusk.ai.studio\n\nEngineered on Google AI Studio with Eve Agent runtime.\nDownload Lossless Stems & MIDI: https://neuraldusk.ai.studio\n\n#Ghostform #NeuralDusk #GLM5 #FutureGarage #Burial #2Step #ElectronicMusic #DeepBass`,
                     'yt-desc'
                   )
                 }
@@ -484,13 +571,14 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
             </div>
             <pre className="text-[11px] font-mono text-slate-300 whitespace-pre-wrap bg-slate-900/80 p-3 rounded-lg border border-slate-800/80">
 {`🎵 Track: Ghostform - ${releaseTitle} (Official Audio Visualizer)
-Artist: Ghostform (Gemini 3 Flash × DeepSeek-R1)
+Artist: Ghostform (Gemini 3 Flash × DeepSeek-R1 × GLM-5.2)
 Produced by: NeuralDusk
 Genre: ${subgenre} • ${tempo} BPM • Key: D Minor Atmospheric
+Live Studio: https://neuraldusk.ai.studio
 
-Co-Produced with the autonomous dual-neural engine on Google AI Studio.
+Co-Produced with the autonomous neural trio engine (Gemini 3 Flash, DeepSeek-R1 & GLM-5.2).
 
-Tags: #Ghostform #NeuralDusk #FutureGarage #Burial #2Step #NightDrive #Atmospheric #ElectronicMusic`}
+Tags: #Ghostform #NeuralDusk #GLM5 #FutureGarage #Burial #2Step #NightDrive #Atmospheric #ElectronicMusic`}
             </pre>
           </div>
         </div>
@@ -514,7 +602,7 @@ Tags: #Ghostform #NeuralDusk #FutureGarage #Burial #2Step #NightDrive #Atmospher
               <button
                 onClick={() =>
                   handleCopy(
-                    `Artist: Ghostform\nTitle: ${releaseTitle}\nProducer: NeuralDusk\nGenre: Electronic\nTags: ghostform, neuraldusk, future garage, 2step, burial, atmospheric, deep sub, gemini, deepseek\nDescription: Produced by NeuralDusk. Performance by Ghostform (Gemini 3 Flash × DeepSeek-R1). ${releaseNote}`,
+                    `Artist: Ghostform\nTitle: ${releaseTitle}\nProducer: NeuralDusk\nStudio: https://neuraldusk.ai.studio\nGenre: Electronic\nTags: ghostform, neuraldusk, future garage, 2step, burial, atmospheric, deep sub, gemini, deepseek, glm5\nDescription: Produced by NeuralDusk. Performance by Ghostform (Gemini 3 Flash × DeepSeek-R1 × GLM-5.2). Live Studio: https://neuraldusk.ai.studio\n${releaseNote}`,
                     'sc-meta'
                   )
                 }
@@ -536,14 +624,14 @@ Tags: #Ghostform #NeuralDusk #FutureGarage #Burial #2Step #NightDrive #Atmospher
               <div className="space-y-1">
                 <span className="text-slate-400 text-[10px]">Primary Genre & Producer</span>
                 <div className="bg-slate-900 p-2.5 rounded-lg text-slate-200 border border-slate-800">
-                  Electronic • Future Garage • Prod. NeuralDusk
+                  Electronic • Future Garage • Prod. NeuralDusk • https://neuraldusk.ai.studio
                 </div>
               </div>
 
               <div className="space-y-1 md:col-span-2">
                 <span className="text-slate-400 text-[10px]">Algorithmic Hashtags & Custom Tags</span>
                 <div className="bg-slate-900 p-2.5 rounded-lg text-amber-300 border border-slate-800 font-mono">
-                  #ghostform #neuraldusk #futuregarage #2step #burial #ambient #atmospheric #gemini #deepseek #dusk #nightdrive
+                  #ghostform #neuraldusk #futuregarage #2step #burial #ambient #atmospheric #gemini #deepseek #glm5 #dusk #nightdrive
                 </div>
               </div>
 
@@ -579,7 +667,7 @@ Tags: #Ghostform #NeuralDusk #FutureGarage #Burial #2Step #NightDrive #Atmospher
               <button
                 onClick={() =>
                   handleCopy(
-                    `ALBUM: Ghostform - The Dusk Archives Vol. 1\nTRACK: ${releaseTitle}\nARTIST: Ghostform (Gemini 3 Flash × DeepSeek-R1)\nPRODUCED BY: NeuralDusk\nMASTERED AT: 24-bit Atmospheric Studio\nLINER NOTES: ${releaseNote}\n\nIncludes lossless multi-track stems + MIDI files.`,
+                    `ALBUM: Ghostform - The Dusk Archives Vol. 1\nTRACK: ${releaseTitle}\nARTIST: Ghostform (Gemini 3 Flash × DeepSeek-R1 × GLM-5.2)\nPRODUCED BY: NeuralDusk\nSTUDIO DOMAIN: https://neuraldusk.ai.studio\nMASTERED AT: 24-bit Atmospheric Studio\nLINER NOTES: ${releaseNote}\n\nIncludes lossless multi-track stems + MIDI files.`,
                     'bc-pack'
                   )
                 }
@@ -597,7 +685,7 @@ Tags: #Ghostform #NeuralDusk #FutureGarage #Burial #2Step #NightDrive #Atmospher
               </div>
               <p className="leading-relaxed text-slate-400">
                 <strong className="text-slate-200">Liner Notes: </strong>
-                Recorded in nocturnal isolation. Produced by <strong className="text-emerald-400">NeuralDusk</strong>. Performed by the autonomous neural duo <strong className="text-purple-400">Ghostform</strong> (Gemini 3 Flash × DeepSeek-R1). {releaseNote}
+                Recorded in nocturnal isolation. Produced by <strong className="text-emerald-400">NeuralDusk</strong>. Performed by the autonomous neural trio <strong className="text-purple-400">Ghostform</strong> (Gemini 3 Flash × DeepSeek-R1 × GLM-5.2). Studio: <a href="https://neuraldusk.ai.studio" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline">https://neuraldusk.ai.studio</a>. {releaseNote}
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-400 pt-2 border-t border-slate-800">
                 <div>Producer: <span className="text-emerald-300 font-bold">NeuralDusk</span></div>
@@ -712,6 +800,94 @@ git push -u origin main`}
                 <span>Cloud Ready: Vercel, Netlify, and Cloud Run production build configured.</span>
               </div>
               <span className="text-teal-400 font-bold">100% Standalone Ready</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 6: GOOGLE DOCS SYNC (README & LINER NOTES) */}
+      {activeTab === 'docs' && (
+        <div className="space-y-4">
+          <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-blue-400 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Google Docs Documentation & README Sync
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Export project README.md, sound design specs, and track liner notes to a new Google Doc in your Google Drive.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {docsUser ? (
+                  <div className="flex items-center gap-2 bg-blue-950/60 border border-blue-800/80 px-3 py-1 rounded-xl text-xs text-blue-300 font-mono">
+                    <UserIcon className="w-3.5 h-3.5 text-blue-400" />
+                    <span>{docsUser.displayName || docsUser.email}</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleDocsSignIn}
+                    disabled={isDocsAuthLoading}
+                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-mono font-bold transition flex items-center gap-1.5"
+                  >
+                    {isDocsAuthLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <UserIcon className="w-3.5 h-3.5" />
+                    )}
+                    <span>Sign in with Google</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={handleCreateDocFromRelease}
+                  disabled={isCreatingDoc}
+                  className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-mono font-bold transition flex items-center gap-1.5 shadow-lg shadow-blue-950 active:scale-95 disabled:opacity-50"
+                >
+                  {isCreatingDoc ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <FileText className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isCreatingDoc ? 'Creating Google Doc...' : 'Export README to Google Docs'}</span>
+                </button>
+              </div>
+            </div>
+
+            {createdDoc && (
+              <div className="p-4 bg-emerald-950/80 rounded-xl border border-emerald-800 flex items-center justify-between flex-wrap gap-3 text-xs font-mono animate-fadeIn">
+                <div className="flex items-center gap-2 text-emerald-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>Google Doc Created: <strong>{createdDoc.title}</strong></span>
+                </div>
+                <a
+                  href={createdDoc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition"
+                >
+                  <span>Open in Google Docs</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
+
+            {docError && (
+              <div className="p-3 bg-rose-950/80 rounded-xl border border-rose-800 flex items-center gap-2 text-xs font-mono text-rose-300">
+                <AlertCircle className="w-4 h-4 text-rose-400" />
+                <span>{docError}</span>
+              </div>
+            )}
+
+            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 space-y-2 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+              <div className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                Live README.md Content Preview:
+              </div>
+              <pre className="text-[11px] text-slate-300 whitespace-pre-wrap">
+                {README_CONTENT}
+              </pre>
             </div>
           </div>
         </div>

@@ -1,11 +1,12 @@
-import React from 'react';
-import { Cpu, Play, Pause, Code, Download, Radio, Volume2, Music2, Share2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Cpu, Play, Pause, Code, Download, Radio, Volume2, Music2, Share2, FileText, Globe, ExternalLink, Check } from 'lucide-react';
 
 interface HeaderProps {
   isPlaying: boolean;
   onTogglePlay: () => void;
   onOpenExportModal: () => void;
   onOpenRecordModal: () => void;
+  onOpenGoogleDocsModal?: () => void;
   onScrollToReleaseHub?: () => void;
   producerName: 'NeuralDusk' | 'Ghostform' | 'GhostSignal';
   tempo: number;
@@ -18,12 +19,22 @@ export const Header: React.FC<HeaderProps> = ({
   onTogglePlay,
   onOpenExportModal,
   onOpenRecordModal,
+  onOpenGoogleDocsModal,
   onScrollToReleaseHub,
   producerName,
   tempo,
   currentBar,
   currentStep,
 }) => {
+  const [copiedDomain, setCopiedDomain] = useState(false);
+
+  const handleCopyDomain = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText('https://neuraldusk.ai.studio');
+    setCopiedDomain(true);
+    setTimeout(() => setCopiedDomain(false), 2000);
+  };
+
   return (
     <header className="border-b border-slate-900 bg-slate-950/85 backdrop-blur-md sticky top-0 z-40 px-4 md:px-8 py-3.5 flex items-center justify-between flex-wrap gap-4">
       <div className="flex items-center gap-3.5">
@@ -34,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-sm md:text-base font-extrabold tracking-wide bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
               GHOSTFORM • FUTURE GARAGE
             </h1>
@@ -42,9 +53,22 @@ export const Header: React.FC<HeaderProps> = ({
               <Radio className="w-2.5 h-2.5 text-emerald-400 animate-pulse" />
               Produced by NeuralDusk
             </span>
+            <a
+              id="header-live-domain-badge"
+              href="https://neuraldusk.ai.studio"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-cyan-950/80 hover:bg-cyan-900/90 text-cyan-300 border border-cyan-800 transition shadow-sm hover:scale-105"
+              title="Connected to https://neuraldusk.ai.studio (Click to open or copy)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+              <Globe className="w-2.5 h-2.5 text-cyan-400" />
+              <span>neuraldusk.ai.studio</span>
+              <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+            </a>
           </div>
           <p className="text-[11px] font-mono text-slate-400 hidden sm:block">
-            Artist: Ghostform (Gemini 3 Flash × DeepSeek-R1) • Producer: NeuralDusk • YouTube Visualizers • DAW MIDI
+            Artist: Ghostform (Gemini 3 Flash × DeepSeek-R1 × GLM-5.2) • Producer: NeuralDusk • Connected to <a href="https://neuraldusk.ai.studio" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">neuraldusk.ai.studio</a>
           </p>
         </div>
       </div>
@@ -71,6 +95,19 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
+        {onOpenGoogleDocsModal && (
+          <button
+            id="btn-open-google-docs"
+            onClick={onOpenGoogleDocsModal}
+            className="px-3.5 py-2 rounded-xl bg-blue-950/80 hover:bg-blue-900/90 border border-blue-800 text-blue-300 font-mono text-xs transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+            title="Export README & Documentation to Google Docs"
+          >
+            <FileText className="w-4 h-4 text-blue-400" />
+            <span className="hidden sm:inline">Google Docs</span>
+            <span className="sm:hidden">Docs</span>
+          </button>
+        )}
+
         <button
           id="btn-open-record"
           onClick={onOpenRecordModal}
@@ -93,12 +130,12 @@ export const Header: React.FC<HeaderProps> = ({
           {isPlaying ? (
             <>
               <Pause className="w-4 h-4 fill-current" />
-              <span>Pause Duo Jam</span>
+              <span>Pause Trio Jam</span>
             </>
           ) : (
             <>
               <Play className="w-4 h-4 fill-current" />
-              <span>Initialize Duo Jam</span>
+              <span>Initialize Trio Jam</span>
             </>
           )}
         </button>

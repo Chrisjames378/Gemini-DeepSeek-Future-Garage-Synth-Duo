@@ -27,6 +27,8 @@ export const TelepathyConsole: React.FC<TelepathyConsoleProps> = ({
         return 'text-rose-300 border-l-2 border-rose-500 bg-rose-950/20';
       case 'deepseek':
         return 'text-cyan-300 border-l-2 border-cyan-500 bg-cyan-950/20';
+      case 'glm':
+        return 'text-amber-300 border-l-2 border-amber-500 bg-amber-950/20';
       case 'ai':
         return 'text-teal-300 border-l-2 border-teal-500 bg-teal-950/20';
       case 'success':
@@ -43,8 +45,11 @@ export const TelepathyConsole: React.FC<TelepathyConsoleProps> = ({
     if (sender === 'DeepSeek-R1') {
       return <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">DeepSeek</span>;
     }
-    if (sender === 'Joint Duo') {
-      return <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">Duo</span>;
+    if (sender === 'GLM-5.2') {
+      return <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-950 text-amber-300 border border-amber-800">GLM-5.2</span>;
+    }
+    if (sender === 'AI Trio' || sender === 'Joint Duo') {
+      return <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">Trio</span>;
     }
     return <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300">Engine</span>;
   };
@@ -58,7 +63,7 @@ export const TelepathyConsole: React.FC<TelepathyConsoleProps> = ({
           </div>
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              AI Duo Telepathic Stream
+              AI Trio Telepathic Stream
             </h2>
             <span className="text-[10px] font-mono text-emerald-400">Autonomous Neural Cognition</span>
           </div>
@@ -67,7 +72,7 @@ export const TelepathyConsole: React.FC<TelepathyConsoleProps> = ({
         <div className="flex items-center gap-1.5">
           <button
             onClick={onTriggerDialogue}
-            title="Trigger Duo Thought"
+            title="Trigger Trio Dialogue"
             className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-[10px] font-mono transition-all flex items-center gap-1"
           >
             <Bot className="w-3 h-3" />
@@ -89,7 +94,7 @@ export const TelepathyConsole: React.FC<TelepathyConsoleProps> = ({
       >
         {logs.length === 0 ? (
           <div className="text-slate-500 italic py-6 text-center">
-            Dual consciousness online. Press Play to listen to Gemini & DeepSeek jam.
+            Trio consciousness online. Press Play to listen to Gemini, DeepSeek & GLM-5.2 jam.
           </div>
         ) : (
           logs.map((log) => (
