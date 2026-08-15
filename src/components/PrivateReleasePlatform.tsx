@@ -33,8 +33,8 @@ interface PrivateReleasePlatformProps {
   tracks: CloudTrack[];
   isPlaying: boolean;
   onTogglePlay: () => void;
-  producerName: 'NeuralDusk' | 'GhostSignal';
-  onSelectProducerName: (name: 'NeuralDusk' | 'GhostSignal') => void;
+  producerName: 'NeuralDusk' | 'Ghostform' | 'GhostSignal';
+  onSelectProducerName: (name: 'NeuralDusk' | 'Ghostform' | 'GhostSignal') => void;
 }
 
 export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
@@ -175,12 +175,12 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
       ctx.textAlign = 'center';
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 20px monospace';
-      ctx.fillText(`${producerName.toUpperCase()} • ${releaseTitle}`, centerX, 45);
+      ctx.fillText(`GHOSTFORM • ${releaseTitle}`, centerX, 45);
 
       ctx.fillStyle = '#94a3b8';
       ctx.font = '12px monospace';
       ctx.fillText(
-        `Dual AI Consciousness (Gemini 3 Flash & DeepSeek-R1) • ${tempo} BPM • Future Garage`,
+        `Artist: Ghostform (Gemini 3 Flash × DeepSeek-R1) • Producer: NeuralDusk • ${tempo} BPM`,
         centerX,
         70
       );
@@ -200,7 +200,7 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
   };
 
   const handleDownloadMidi = () => {
-    const { blob, filename } = generateMidiFile(patterns, tempo, `${producerName} - ${releaseTitle}`);
+    const { blob, filename } = generateMidiFile(patterns, tempo, `Ghostform - ${releaseTitle} (Prod. by NeuralDusk)`);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -267,41 +267,26 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
               <h2 className="text-xl font-extrabold tracking-wide bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                {producerName} Release Distribution Hub
+                NeuralDusk Studio • Release Distribution Hub
               </h2>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
-                Private Vault & Multi-Platform
+                Producer Vault
               </span>
             </div>
             <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Instant formatted exports for SoundCloud, Bandcamp, YouTube (1080p Visualizer), and DAW MIDI.
+              Featuring Artist: <strong className="text-teal-300">Ghostform</strong> (Autonomous Gemini 3 Flash × DeepSeek-R1) • Instant export for YouTube, SoundCloud, Bandcamp & DAW MIDI.
             </p>
           </div>
         </div>
 
-        {/* Producer Moniker Selector */}
-        <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 p-1.5 rounded-2xl">
-          <span className="text-[11px] font-mono text-slate-400 px-2 font-semibold">Artist Moniker:</span>
-          <button
-            onClick={() => onSelectProducerName('NeuralDusk')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
-              producerName === 'NeuralDusk'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            NeuralDusk (Recommended)
-          </button>
-          <button
-            onClick={() => onSelectProducerName('GhostSignal')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
-              producerName === 'GhostSignal'
-                ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            GhostSignal
-          </button>
+        {/* Roles Badge & Credits */}
+        <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 p-2 rounded-2xl flex-wrap">
+          <div className="px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-300 text-xs font-mono font-bold">
+            Producer: NeuralDusk
+          </div>
+          <div className="px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-800/80 text-purple-300 text-xs font-mono font-bold">
+            Artist: Ghostform
+          </div>
         </div>
       </div>
 
@@ -468,7 +453,7 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
               </div>
               <a
                 href={recordedVideoUrl}
-                download={`${producerName.toLowerCase()}-${releaseTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')}-visualizer.webm`}
+                download={`ghostform-${releaseTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')}-visualizer.webm`}
                 className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold transition flex items-center gap-1"
               >
                 <Download className="w-3.5 h-3.5" />
@@ -487,7 +472,7 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
               <button
                 onClick={() =>
                   handleCopy(
-                    `🎵 Title: ${producerName} - ${releaseTitle} (Official Audio Visualizer)\nGenre: ${subgenre}\nTempo: ${tempo} BPM\nKey: D Minor Atmospheric\n\nCo-Produced by: ${producerName} x Gemini 3 Flash x DeepSeek-R1\nBuilt on Google AI Studio.\n\nDownload Lossless Stems & MIDI: [Link]\n\n#FutureGarage #Burial #2Step #${producerName} #ElectronicMusic #DeepBass`,
+                    `🎵 Track: Ghostform - ${releaseTitle}\nProduced by: NeuralDusk\nArtist: Ghostform (Gemini 3 Flash × DeepSeek-R1)\nGenre: ${subgenre}\nTempo: ${tempo} BPM • Key: D Minor Atmospheric\n\nEngineered on Google AI Studio.\nDownload Lossless Stems & MIDI: [Link]\n\n#Ghostform #NeuralDusk #FutureGarage #Burial #2Step #ElectronicMusic #DeepBass`,
                     'yt-desc'
                   )
                 }
@@ -498,14 +483,14 @@ export const PrivateReleasePlatform: React.FC<PrivateReleasePlatformProps> = ({
               </button>
             </div>
             <pre className="text-[11px] font-mono text-slate-300 whitespace-pre-wrap bg-slate-900/80 p-3 rounded-lg border border-slate-800/80">
-{`🎵 Title: ${producerName} - ${releaseTitle} (Official Audio Visualizer)
-Genre: ${subgenre}
-Tempo: ${tempo} BPM • Key: D Minor Atmospheric
+{`🎵 Track: Ghostform - ${releaseTitle} (Official Audio Visualizer)
+Artist: Ghostform (Gemini 3 Flash × DeepSeek-R1)
+Produced by: NeuralDusk
+Genre: ${subgenre} • ${tempo} BPM • Key: D Minor Atmospheric
 
-Co-Produced by: ${producerName} (Autonomous Gemini 3 Flash & DeepSeek-R1 Dual Synthesizer Duo)
-Engineered on Google AI Studio.
+Co-Produced with the autonomous dual-neural engine on Google AI Studio.
 
-Tags: #FutureGarage #Burial #2Step #${producerName} #NightDrive #Atmospheric #ElectronicMusic`}
+Tags: #Ghostform #NeuralDusk #FutureGarage #Burial #2Step #NightDrive #Atmospheric #ElectronicMusic`}
             </pre>
           </div>
         </div>
@@ -529,7 +514,7 @@ Tags: #FutureGarage #Burial #2Step #${producerName} #NightDrive #Atmospheric #El
               <button
                 onClick={() =>
                   handleCopy(
-                    `Artist: ${producerName}\nTitle: ${releaseTitle}\nGenre: Electronic\nTags: future garage, 2step, burial, atmospheric, deep sub, ${producerName.toLowerCase()}, gemini, deepseek\nDescription: ${releaseNote}`,
+                    `Artist: Ghostform\nTitle: ${releaseTitle}\nProducer: NeuralDusk\nGenre: Electronic\nTags: ghostform, neuraldusk, future garage, 2step, burial, atmospheric, deep sub, gemini, deepseek\nDescription: Produced by NeuralDusk. Performance by Ghostform (Gemini 3 Flash × DeepSeek-R1). ${releaseNote}`,
                     'sc-meta'
                   )
                 }
@@ -544,21 +529,21 @@ Tags: #FutureGarage #Burial #2Step #${producerName} #NightDrive #Atmospheric #El
               <div className="space-y-1">
                 <span className="text-slate-400 text-[10px]">Track Artist & Title</span>
                 <div className="bg-slate-900 p-2.5 rounded-lg text-slate-200 border border-slate-800 font-bold">
-                  {producerName} - {releaseTitle}
+                  Ghostform - {releaseTitle} (Prod. by NeuralDusk)
                 </div>
               </div>
 
               <div className="space-y-1">
-                <span className="text-slate-400 text-[10px]">Primary Genre</span>
+                <span className="text-slate-400 text-[10px]">Primary Genre & Producer</span>
                 <div className="bg-slate-900 p-2.5 rounded-lg text-slate-200 border border-slate-800">
-                  Electronic • Future Garage / 2-Step
+                  Electronic • Future Garage • Prod. NeuralDusk
                 </div>
               </div>
 
               <div className="space-y-1 md:col-span-2">
                 <span className="text-slate-400 text-[10px]">Algorithmic Hashtags & Custom Tags</span>
                 <div className="bg-slate-900 p-2.5 rounded-lg text-amber-300 border border-slate-800 font-mono">
-                  #futuregarage #2step #burial #ambient #atmospheric #${producerName.toLowerCase()} #geminiaudio #deepseek #dusk #nightdrive
+                  #ghostform #neuraldusk #futuregarage #2step #burial #ambient #atmospheric #gemini #deepseek #dusk #nightdrive
                 </div>
               </div>
 
@@ -594,7 +579,7 @@ Tags: #FutureGarage #Burial #2Step #${producerName} #NightDrive #Atmospheric #El
               <button
                 onClick={() =>
                   handleCopy(
-                    `ALBUM: ${producerName} - Night Visions EP\nTRACK: ${releaseTitle}\nPRODUCED BY: ${producerName} (Gemini 3 Flash & DeepSeek-R1)\nMASTERED AT: 24-bit Atmospheric Studio\nLINER NOTES: ${releaseNote}\n\nIncludes lossless multi-track stems + MIDI files.`,
+                    `ALBUM: Ghostform - The Dusk Archives Vol. 1\nTRACK: ${releaseTitle}\nARTIST: Ghostform (Gemini 3 Flash × DeepSeek-R1)\nPRODUCED BY: NeuralDusk\nMASTERED AT: 24-bit Atmospheric Studio\nLINER NOTES: ${releaseNote}\n\nIncludes lossless multi-track stems + MIDI files.`,
                     'bc-pack'
                   )
                 }
@@ -607,16 +592,16 @@ Tags: #FutureGarage #Burial #2Step #${producerName} #NightDrive #Atmospheric #El
 
             <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 space-y-3">
               <div className="flex justify-between items-center text-cyan-300 font-bold border-b border-slate-800 pb-2">
-                <span>Album: {producerName} - The Dusk Archives Vol. 1</span>
+                <span>Album: Ghostform - The Dusk Archives Vol. 1</span>
                 <span>Release Type: Digital EP + Stems</span>
               </div>
               <p className="leading-relaxed text-slate-400">
                 <strong className="text-slate-200">Liner Notes: </strong>
-                Recorded in nocturnal isolation. {releaseNote} All tracks sequenced with live micro-timing swing, D minor 9th harmonic voicings, and analog tape warmth.
+                Recorded in nocturnal isolation. Produced by <strong className="text-emerald-400">NeuralDusk</strong>. Performed by the autonomous neural duo <strong className="text-purple-400">Ghostform</strong> (Gemini 3 Flash × DeepSeek-R1). {releaseNote}
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-400 pt-2 border-t border-slate-800">
-                <div>Producer: <span className="text-slate-200">{producerName}</span></div>
-                <div>Mastering: <span className="text-slate-200">AI Duo Limiter</span></div>
+                <div>Producer: <span className="text-emerald-300 font-bold">NeuralDusk</span></div>
+                <div>Artist: <span className="text-purple-300 font-bold">Ghostform</span></div>
                 <div>BPM: <span className="text-emerald-400">{tempo}</span></div>
                 <div>Key: <span className="text-cyan-400">D Minor</span></div>
               </div>

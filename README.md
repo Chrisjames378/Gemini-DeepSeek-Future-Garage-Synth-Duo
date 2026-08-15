@@ -1,5 +1,6 @@
-# NeuralDusk & GhostSignal • Future Garage Synth Studio
-> Autonomous Atmospheric & 2-Step Neural Soundscape Synthesizer Jam powered by Gemini 3 Flash and DeepSeek-R1.
+# Ghostform • Future Garage Synth Studio
+> Performed by **Ghostform** (Autonomous Dual AI Duo: Gemini 3 Flash × DeepSeek-R1)  
+> Produced by **NeuralDusk**
 
 [![Google AI Studio](https://img.shields.io/badge/Engineered%20With-Google%20AI%20Studio-teal)](https://ai.studio)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
@@ -8,9 +9,11 @@
 
 ---
 
-## 🎧 Overview
+## 🎧 Artist & Producer Overview
 
-**NeuralDusk** (alias **GhostSignal**) is a browser-based Future Garage & 2-Step electronic music workstation co-produced by dual autonomous neural agents (**Gemini 3 Flash** & **DeepSeek-R1**).
+- **Producer**: **NeuralDusk**
+- **Artist**: **Ghostform** (Autonomous AI Duo powered by **Gemini 3 Flash** × **DeepSeek-R1**)
+- **Genre**: Future Garage • 2-Step • Atmospheric Burial-Style Deep Bass
 
 Designed with late-night London atmospheric aesthetics (Burial, Synkro, Volor Flex, Sorrow), this studio features:
 - **32-Step Syncopated 2-Step Sequencer** with autonomous evolutionary mutations

@@ -1,18 +1,6 @@
 import * as Tone from 'tone';
 import { Patterns, TrackType } from './types';
-
-// Future Garage Chord Voicings (D Minor Atmospheric)
-export const CHORD_VOICINGS: { name: string; notes: string[] }[] = [
-  { name: 'Dm9 (Ethereal)', notes: ['D3', 'F3', 'A3', 'C4', 'E4'] },
-  { name: 'Am9 (Nocturnal)', notes: ['A2', 'C3', 'E3', 'G3', 'B3'] },
-  { name: 'Bbmaj9 (Melancholy)', notes: ['Bb2', 'D3', 'F3', 'A3', 'C4'] },
-  { name: 'Gm9 (Deep Sub)', notes: ['G2', 'Bb2', 'D3', 'F3', 'A3'] },
-  { name: 'Fmaj7#11 (Dusk)', notes: ['F2', 'A2', 'C3', 'E3', 'B3'] },
-  { name: 'Cadd9 (Dawn)', notes: ['C3', 'E3', 'G3', 'D4'] }
-];
-
-export const BASS_NOTES = ['D1', 'D1', 'F1', 'G1', 'A1', 'D1', 'C1', 'Bb1', 'G1', 'A1', 'F1', 'D1'];
-export const VOCAL_NOTES = ['A4', 'C5', 'D5', 'F5', 'G5', 'E5', 'Bb4', 'A5'];
+import { CHORD_PROGRESSIONS, ChordProgressionId, DRUM_KITS, DrumKitId } from './soundOptions';
 
 export class FutureGarageAudioEngine {
   private initialized: boolean = false;
@@ -20,6 +8,10 @@ export class FutureGarageAudioEngine {
   private currentStep: number = 0;
   private currentBar: number = 0;
   private currentChordIdx: number = 0;
+
+  // Sound Options State
+  private currentProgressionId: ChordProgressionId = 'd_minor_ethereal';
+  private currentDrumKitId: DrumKitId = 'garage_vinyl';
 
   // Nodes & FX
   private masterGain!: Tone.Gain;
@@ -202,6 +194,30 @@ export class FutureGarageAudioEngine {
     this.initialized = true;
   }
 
+  public setChordProgression(id: ChordProgressionId) {
+    this.currentProgressionId = id;
+    this.currentChordIdx = 0;
+  }
+
+  public getChordProgression(): ChordProgressionId {
+    return this.currentProgressionId;
+  }
+
+  public setDrumKit(kitId: DrumKitId) {
+    this.currentDrumKitId = kitId;
+    const kit = DRUM_KITS.find((k) => k.id === kitId) || DRUM_KITS[0];
+    if (this.initialized) {
+      this.kickSynth.octaves = kit.kickOctaves;
+      this.kickSynth.envelope.decay = kit.kickDecay;
+      this.snareSynth.noise.type = kit.snareNoiseType;
+      this.snareSynth.envelope.decay = kit.snareDecay;
+    }
+  }
+
+  public getDrumKit(): DrumKitId {
+    return this.currentDrumKitId;
+  }
+
   public setCallbacks(
     onStep: (step: number, bar: number, chordIdx: number) => void,
     onBar: (bar: number) => void
@@ -258,12 +274,14 @@ export class FutureGarageAudioEngine {
   ) {
     const step = this.currentStep;
     const stepCount = 32;
+    const progression = CHORD_PROGRESSIONS.find((p) => p.id === this.currentProgressionId) || CHORD_PROGRESSIONS[0];
+    const kit = DRUM_KITS.find((k) => k.id === this.currentDrumKitId) || DRUM_KITS[0];
 
     // 1. Drums Step
     if (this.isTrackAudible('drums', mutes, solos) && patterns.drums[step] === 1) {
       if (step % 8 === 0 || step === 14 || step === 22) {
         // Kick punch
-        this.kickSynth.triggerAttackRelease('C1', '8n', time, 0.9);
+        this.kickSynth.triggerAttackRelease(kit.kickPitch, '8n', time, 0.9);
       } else if (step % 8 === 4 || step === 12 || step === 28) {
         // Snare / Rimshot
         this.snareSynth.triggerAttackRelease('16n', time, 0.75);
@@ -275,14 +293,14 @@ export class FutureGarageAudioEngine {
 
     // 2. Sub Bass Step
     if (this.isTrackAudible('bass', mutes, solos) && patterns.bass[step] === 1) {
-      const noteIdx = (Math.floor(step / 4) + this.currentChordIdx) % BASS_NOTES.length;
-      const note = BASS_NOTES[noteIdx];
+      const noteIdx = (Math.floor(step / 4) + this.currentChordIdx) % progression.bassNotes.length;
+      const note = progression.bassNotes[noteIdx];
       this.bassSynth.triggerAttackRelease(note, '8n', time, 0.85);
     }
 
     // 3. Atmospheric Chord Pads
     if (this.isTrackAudible('chords', mutes, solos) && patterns.chords[step] === 1) {
-      const voicing = CHORD_VOICINGS[this.currentChordIdx % CHORD_VOICINGS.length].notes;
+      const voicing = progression.chords[this.currentChordIdx % progression.chords.length].notes;
       this.polySynth.triggerAttackRelease(voicing, '2n', time, 0.6);
     }
 
@@ -293,7 +311,7 @@ export class FutureGarageAudioEngine {
 
     // 5. Vocal Chops
     if (this.isTrackAudible('vocals', mutes, solos) && patterns.vocals[step] === 1) {
-      const randomNote = VOCAL_NOTES[(step + this.currentChordIdx * 2) % VOCAL_NOTES.length];
+      const randomNote = progression.vocalNotes[(step + this.currentChordIdx * 2) % progression.vocalNotes.length];
       this.vocalSynth.triggerAttackRelease(randomNote, '16n', time, 0.7);
     }
 
@@ -306,7 +324,7 @@ export class FutureGarageAudioEngine {
     this.currentStep = (this.currentStep + 1) % stepCount;
     if (this.currentStep === 0) {
       this.currentBar++;
-      this.currentChordIdx = (this.currentChordIdx + 1) % CHORD_VOICINGS.length;
+      this.currentChordIdx = (this.currentChordIdx + 1) % progression.chords.length;
       if (this.onBarCallback) {
         this.onBarCallback(this.currentBar);
       }
@@ -316,8 +334,8 @@ export class FutureGarageAudioEngine {
   public singVocalAnthem() {
     if (!this.initialized) return;
     const now = Tone.now();
-    const anthemNotes = ['D4', 'F4', 'A4', 'C5', 'D5', 'F5', 'G5', 'A5'];
-    anthemNotes.forEach((note, idx) => {
+    const progression = CHORD_PROGRESSIONS.find((p) => p.id === this.currentProgressionId) || CHORD_PROGRESSIONS[0];
+    progression.vocalNotes.forEach((note, idx) => {
       this.vocalSynth.triggerAttackRelease(note, '8n', now + idx * 0.18, 0.75);
     });
   }
@@ -372,7 +390,6 @@ export class FutureGarageAudioEngine {
 
   public toggleTapeStop(duration: number = 1.2): boolean {
     if (!this.initialized || !this.isPlaying) return false;
-    const now = Tone.now();
     if (!this.isTapeStopped) {
       this.isTapeStopped = true;
       this.originalTempo = Tone.Transport.bpm.value;
@@ -413,3 +430,4 @@ export class FutureGarageAudioEngine {
 }
 
 export const audioEngine = new FutureGarageAudioEngine();
+

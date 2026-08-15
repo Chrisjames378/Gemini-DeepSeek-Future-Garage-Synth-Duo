@@ -1,13 +1,15 @@
 import MidiWriter from 'midi-writer-js';
 import { Patterns, TrackType } from './types';
-import { CHORD_VOICINGS, BASS_NOTES, VOCAL_NOTES } from './audioEngine';
+import { CHORD_PROGRESSIONS, ChordProgressionId } from './soundOptions';
 
 export function generateMidiFile(
   patterns: Patterns,
   tempo: number = 132,
-  trackTitle: string = 'NeuralDusk Future Garage Session'
+  trackTitle: string = 'Ghostform Future Garage Session',
+  progressionId: ChordProgressionId = 'd_minor_ethereal'
 ): { blob: Blob; filename: string } {
   const tracks: any[] = [];
+  const progression = CHORD_PROGRESSIONS.find((p) => p.id === progressionId) || CHORD_PROGRESSIONS[0];
 
   // Track 1: 2-Step Drums (Channel 10 in General MIDI)
   const drumTrack = new MidiWriter.Track();
@@ -44,7 +46,8 @@ export function generateMidiFile(
   bassTrack.addTrackName(`${trackTitle} - Sub Bass`);
   for (let i = 0; i < 32; i++) {
     if (patterns.bass[i] === 1) {
-      const note = BASS_NOTES[Math.floor(i / 4) % BASS_NOTES.length];
+      const chordIdx = Math.floor(i / 8) % progression.chords.length;
+      const note = progression.bassNotes[(Math.floor(i / 4) + chordIdx) % progression.bassNotes.length];
       bassTrack.addEvent(
         new MidiWriter.NoteEvent({
           pitch: [note],
@@ -63,8 +66,8 @@ export function generateMidiFile(
   padTrack.addTrackName(`${trackTitle} - Lush Pads`);
   for (let i = 0; i < 32; i += 8) {
     if (patterns.chords[i] === 1 || patterns.chords[i + 1] === 1) {
-      const chordIdx = Math.floor(i / 8) % CHORD_VOICINGS.length;
-      const notes = CHORD_VOICINGS[chordIdx].notes;
+      const chordIdx = Math.floor(i / 8) % progression.chords.length;
+      const notes = progression.chords[chordIdx].notes;
       padTrack.addEvent(
         new MidiWriter.NoteEvent({
           pitch: notes,
@@ -83,7 +86,8 @@ export function generateMidiFile(
   vocalTrack.addTrackName(`${trackTitle} - Vocal Chops`);
   for (let i = 0; i < 32; i++) {
     if (patterns.vocals[i] === 1) {
-      const note = VOCAL_NOTES[i % VOCAL_NOTES.length];
+      const chordIdx = Math.floor(i / 8) % progression.chords.length;
+      const note = progression.vocalNotes[(i + chordIdx * 2) % progression.vocalNotes.length];
       vocalTrack.addEvent(
         new MidiWriter.NoteEvent({
           pitch: [note],
@@ -98,6 +102,7 @@ export function generateMidiFile(
   tracks.push(vocalTrack);
 
   const write = new MidiWriter.Writer(tracks);
+
   const uint8Array = write.buildFile();
   const blob = new Blob([uint8Array], { type: 'audio/midi' });
   const filename = `${trackTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.mid`;

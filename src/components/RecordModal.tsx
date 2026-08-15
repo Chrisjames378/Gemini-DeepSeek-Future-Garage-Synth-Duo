@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { X, Download, FileAudio, Check, Music2, Radio, Sliders, Disc3 } from 'lucide-react';
+import { X, Download, FileAudio, Check, Music2, Radio, Sliders, Disc3, Loader2 } from 'lucide-react';
 import { Patterns, TrackType } from '../types';
 import { generateMidiFile } from '../midiExporter';
+import { renderTrackToWav } from '../offlineStemRenderer';
+import { ChordProgressionId, DrumKitId } from '../soundOptions';
 
 interface RecordModalProps {
   isOpen: boolean;
@@ -10,6 +12,8 @@ interface RecordModalProps {
   tempo: number;
   swing: number;
   producerName?: string;
+  chordProgressionId?: ChordProgressionId;
+  drumKitId?: DrumKitId;
   onExportStem: (track: TrackType) => void;
 }
 
@@ -20,10 +24,13 @@ export const RecordModal: React.FC<RecordModalProps> = ({
   tempo,
   swing,
   producerName = 'NeuralDusk',
+  chordProgressionId = 'd_minor_ethereal' as ChordProgressionId,
+  drumKitId = 'garage_vinyl' as DrumKitId,
   onExportStem,
 }) => {
   const [downloadedAll, setDownloadedAll] = useState(false);
   const [midiDownloaded, setMidiDownloaded] = useState(false);
+  const [renderingTrack, setRenderingTrack] = useState<TrackType | null>(null);
 
   if (!isOpen) return null;
 
@@ -35,8 +42,34 @@ export const RecordModal: React.FC<RecordModalProps> = ({
     { key: 'vocals', name: 'Vocal Chop Chants Stem', desc: 'Formant AI duo soprano and bass chants', color: 'text-rose-400' },
   ];
 
+  const handleDownloadWavStem = async (track: TrackType) => {
+    try {
+      setRenderingTrack(track);
+      const safeProgression: ChordProgressionId = (chordProgressionId || 'd_minor_ethereal') as ChordProgressionId;
+      const safeDrumKit: DrumKitId = (drumKitId || 'garage_vinyl') as DrumKitId;
+      const wavBlob = await renderTrackToWav(track, patterns, tempo, swing, safeProgression, safeDrumKit, 2);
+      const url = URL.createObjectURL(wavBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ghostform-${track}-stem-${Date.now()}.wav`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to render WAV stem:', err);
+    } finally {
+      setRenderingTrack(null);
+    }
+  };
+
   const handleExportMidi = () => {
-    const { blob, filename } = generateMidiFile(patterns, tempo, `${producerName} - Future Garage Session`);
+    const safeProgression: ChordProgressionId = (chordProgressionId || 'd_minor_ethereal') as ChordProgressionId;
+    const { blob, filename } = generateMidiFile(
+      patterns,
+      tempo,
+      `Ghostform - Future Garage Session (Prod. by ${producerName})`,
+      safeProgression
+    );
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -47,12 +80,16 @@ export const RecordModal: React.FC<RecordModalProps> = ({
     setTimeout(() => setMidiDownloaded(false), 2500);
   };
 
+
   const handleExportAllStems = () => {
     const fullProject = {
-      project: `${producerName} Future Garage Synth Studio`,
+      project: `Ghostform Future Garage Synth Studio`,
+      artist: 'Ghostform (Gemini 3 Flash × DeepSeek-R1)',
+      producer: producerName,
       tempo,
       swing,
-      key: 'D Minor Atmospheric (Dm9 - Am9 - Bbmaj9 - Gm9)',
+      chordProgression: chordProgressionId,
+      drumKit: drumKitId,
       patterns,
       exportedAt: new Date().toISOString(),
     };
@@ -61,7 +98,7 @@ export const RecordModal: React.FC<RecordModalProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${producerName.toLowerCase()}-session-${Date.now()}.json`;
+    a.download = `ghostform-session-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
 
@@ -71,7 +108,7 @@ export const RecordModal: React.FC<RecordModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-xl w-full shadow-2xl space-y-4 flex flex-col">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-4 flex flex-col">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400">
@@ -79,10 +116,10 @@ export const RecordModal: React.FC<RecordModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-sm text-cyan-400">
-                Stem Isolation & DAW MIDI Package
+                Stem Isolation, Lossless .WAV & MIDI Package
               </h3>
               <p className="text-[11px] text-slate-400">
-                Export lossless multi-track stems, Type-1 MIDI files, and pattern JSON for your DAW.
+                Render offline 16-bit .WAV audio stems, Type-1 MIDI files, and pattern JSON for your DAW.
               </p>
             </div>
           </div>
@@ -95,11 +132,11 @@ export const RecordModal: React.FC<RecordModalProps> = ({
         </div>
 
         {/* Stem List */}
-        <div className="space-y-2.5">
+        <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
           {tracks.map((track) => (
             <div
               key={track.key}
-              className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3"
+              className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3 flex-wrap"
             >
               <div>
                 <span className={`text-xs font-mono font-bold ${track.color}`}>
@@ -108,13 +145,33 @@ export const RecordModal: React.FC<RecordModalProps> = ({
                 <p className="text-[10px] text-slate-400 mt-0.5">{track.desc}</p>
               </div>
 
-              <button
-                onClick={() => onExportStem(track.key)}
-                className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-300 border border-slate-700 text-xs font-mono transition flex items-center gap-1.5"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export Stem</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={renderingTrack !== null}
+                  onClick={() => handleDownloadWavStem(track.key)}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 text-xs font-mono transition flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {renderingTrack === track.key ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Rendering .WAV...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Render .WAV</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => onExportStem(track.key)}
+                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-300 border border-slate-700 text-xs font-mono transition flex items-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Stem .JSON</span>
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -122,7 +179,7 @@ export const RecordModal: React.FC<RecordModalProps> = ({
         {/* Full Project & MIDI Export */}
         <div className="pt-2 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-[11px] font-mono text-slate-400">
-            <span>Arrangement: 32 Steps (2 Bars)</span>
+            <span>Arrangement: 32 Steps (2 Bars Offline Render)</span>
           </div>
 
           <div className="flex gap-2 flex-wrap">
@@ -154,3 +211,4 @@ export const RecordModal: React.FC<RecordModalProps> = ({
     </div>
   );
 };
+

@@ -22,10 +22,13 @@ import {
 } from './types';
 import {
   audioEngine,
-  CHORD_VOICINGS,
-  BASS_NOTES,
-  VOCAL_NOTES,
 } from './audioEngine';
+import {
+  CHORD_PROGRESSIONS,
+  ChordProgressionId,
+  DRUM_KITS,
+  DrumKitId,
+} from './soundOptions';
 import { DEFAULT_PATTERNS, INITIAL_PRESETS, INITIAL_PROPOSALS } from './presets';
 import { X } from 'lucide-react';
 
@@ -38,11 +41,14 @@ export default function App() {
   const [currentBar, setCurrentBar] = useState<number>(1);
   const [currentChordIdx, setCurrentChordIdx] = useState<number>(0);
 
-  // Audio parameters
+  // Audio parameters & Sonic options
   const [tempo, setTempo] = useState<number>(132);
   const [swing, setSwing] = useState<number>(0.25);
   const [reverbWet, setReverbWet] = useState<number>(0.65);
   const [filterCutoff, setFilterCutoff] = useState<number>(4500);
+  const [chordProgressionId, setChordProgressionId] = useState<ChordProgressionId>('d_minor_ethereal');
+  const [drumKitId, setDrumKitId] = useState<DrumKitId>('garage_vinyl');
+
 
   // Sequencer patterns
   const [patterns, setPatterns] = useState<Patterns>(DEFAULT_PATTERNS);
@@ -77,7 +83,7 @@ export default function App() {
   const [mutationCountdown, setMutationCountdown] = useState<number>(8);
 
   // Producer Identity & Branding
-  const [producerName, setProducerName] = useState<'NeuralDusk' | 'GhostSignal'>('NeuralDusk');
+  const [producerName, setProducerName] = useState<'NeuralDusk' | 'Ghostform' | 'GhostSignal'>('NeuralDusk');
   const [rainVolume, setRainVolume] = useState<number>(0.35);
   const [vinylVolume, setVinylVolume] = useState<number>(0.25);
   const releaseHubRef = useRef<HTMLDivElement | null>(null);
@@ -519,7 +525,8 @@ export default function App() {
     addLog(pick.speaker, pick.msg, pick.type);
   };
 
-  const currentChordName = CHORD_VOICINGS[currentChordIdx % CHORD_VOICINGS.length].name;
+  const currentProgression = CHORD_PROGRESSIONS.find((p) => p.id === chordProgressionId) || CHORD_PROGRESSIONS[0];
+  const currentChordName = currentProgression.chords[currentChordIdx % currentProgression.chords.length].name;
 
   return (
     <div className="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-slate-950 font-sans">
@@ -559,6 +566,8 @@ export default function App() {
             reverbWet={reverbWet}
             filterCutoff={filterCutoff}
             swing={swing}
+            chordProgressionId={chordProgressionId}
+            drumKitId={drumKitId}
             presets={cloudTracks}
             onUpdateTempo={(v) => {
               setTempo(v);
@@ -575,6 +584,22 @@ export default function App() {
             onUpdateSwing={(v) => {
               setSwing(v);
               audioEngine.setSwing(v);
+            }}
+            onSelectChordProgression={(id) => {
+              setChordProgressionId(id);
+              audioEngine.setChordProgression(id);
+              const prog = CHORD_PROGRESSIONS.find((p) => p.id === id);
+              if (prog) {
+                addLog('Gemini 3 Flash', `Harmonic Mode switched to: ${prog.name}`, 'gemini');
+              }
+            }}
+            onSelectDrumKit={(id) => {
+              setDrumKitId(id);
+              audioEngine.setDrumKit(id);
+              const kit = DRUM_KITS.find((k) => k.id === id);
+              if (kit) {
+                addLog('DeepSeek-R1', `Drum engine switched to: ${kit.name}`, 'deepseek');
+              }
             }}
             onSelectPreset={handleSelectPreset}
           />
@@ -686,8 +711,11 @@ export default function App() {
         tempo={tempo}
         swing={swing}
         producerName={producerName}
+        chordProgressionId={chordProgressionId}
+        drumKitId={drumKitId}
         onExportStem={handleExportStem}
       />
+
 
       {/* Generic Modal Notification */}
       {modalNotification.isOpen && (

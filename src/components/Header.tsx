@@ -7,7 +7,7 @@ interface HeaderProps {
   onOpenExportModal: () => void;
   onOpenRecordModal: () => void;
   onScrollToReleaseHub?: () => void;
-  producerName: 'NeuralDusk' | 'GhostSignal';
+  producerName: 'NeuralDusk' | 'Ghostform' | 'GhostSignal';
   tempo: number;
   currentBar: number;
   currentStep: number;
@@ -36,15 +36,15 @@ export const Header: React.FC<HeaderProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-sm md:text-base font-extrabold tracking-wide bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-              {producerName.toUpperCase()} • FUTURE GARAGE SYNTH DUO
+              GHOSTFORM • FUTURE GARAGE
             </h1>
             <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80">
               <Radio className="w-2.5 h-2.5 text-emerald-400 animate-pulse" />
-              Duo Neural Live
+              Produced by NeuralDusk
             </span>
           </div>
           <p className="text-[11px] font-mono text-slate-400 hidden sm:block">
-            Gemini 3 Flash x DeepSeek-R1 • YouTube Visualizers • SoundCloud & Bandcamp Distribution • MIDI Multi-Track
+            Artist: Ghostform (Gemini 3 Flash × DeepSeek-R1) • Producer: NeuralDusk • YouTube Visualizers • DAW MIDI
           </p>
         </div>
       </div>
