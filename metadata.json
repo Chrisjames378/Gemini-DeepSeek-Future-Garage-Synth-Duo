@@ -1,0 +1,6 @@
+{
+  "name": "Gemini & DeepSeek Future Garage Synth Duo",
+  "description": "Autonomous atmospheric future garage synthesizer duo with private release hub, YouTube visualizers, MIDI multi-track export, SoundCloud & Bandcamp distribution, and tape-stop dub siren FX.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
